@@ -6,6 +6,7 @@ package org.infinity.resource.cre;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -25,6 +26,9 @@ import org.infinity.datatype.EffectType;
 import org.infinity.datatype.Flag;
 import org.infinity.datatype.IsNumeric;
 import org.infinity.datatype.ResourceRef;
+import org.infinity.gui.BrowserMenuBar; // ++
+import org.infinity.gui.InfinityScrollPane; // ++
+import org.infinity.gui.InfinityTextArea; // ++
 import org.infinity.gui.ViewerUtil;
 import org.infinity.gui.ViewerUtil.ListValueRenderer;
 import org.infinity.resource.AbstractStruct;
@@ -131,6 +135,11 @@ public final class Viewer extends JPanel
     }
     else if (version != null)
       tabs.addTab("Items/Spells", makeItemSpellsPanel(cre));
+    // START: HENKO add BG2WikiInfobox
+    if (Profile.getGame().toString() == "BG2EE" ) {
+    	tabs.addTab("BG Wiki CreatureInfobox", makeBG2WikiPanel(cre));
+    }
+	// END: HENKO add BG2WikiInfobox
     setLayout(new BorderLayout());
     add(tabs, BorderLayout.CENTER);
   }
@@ -161,7 +170,179 @@ public final class Viewer extends JPanel
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     return panel;
   }
+  // START: HENKO add function to comment out zero-values in BG2WikiInfobox
+  private String creInfoboxCommentZeroValue(CreResource cre, String attribute)
+  {
+    String retval = cre.getAttribute(attribute).toString();
+	if (retval.equalsIgnoreCase("0"))
+	{
+	  return "<!-- " + retval + " -->";
+	}
+	else if (retval.indexOf(" - ") != -1)
+	{
+	  return retval.split(" - ")[0].substring(0,1).toUpperCase() + retval.split(" - ")[0].substring(1).toLowerCase();
+    }
+	else 
+	{
+		return retval;
+	}
+  }
+  // END 
 
+private JPanel makeBG2WikiPanel(CreResource cre)
+  {
+	  // BG2 Wiki 'CreatureInfobox' with some values
+	  // Henko 2020-11-12
+
+  
+	 Integer stats = Integer.valueOf(cre.getAttribute(CreResource.CRE_STRENGTH).toString()) +
+			 Integer.valueOf(cre.getAttribute(CreResource.CRE_INTELLIGENCE).toString())  +
+			 Integer.valueOf(cre.getAttribute(CreResource.CRE_WISDOM).toString()) +
+			 Integer.valueOf(cre.getAttribute(CreResource.CRE_DEXTERITY).toString()) +
+			 Integer.valueOf(cre.getAttribute(CreResource.CRE_CONSTITUTION).toString()) +
+			 Integer.valueOf(cre.getAttribute(CreResource.CRE_CHARISMA).toString());
+	 String infobox = "Layout source  ( 2020-11 ) https://baldursgate.fandom.com/wiki/Template:Infobox_creature \r\n" + 
+"{{infobox creature \r\n" +
+"		  |name                 = " + cre.getAttribute(CreResource.CRE_NAME) + "\r\n" + 
+"		  |bg1ee_tbp1           = \r\n" + 
+"		  |bg1_wo_totsc         = \r\n" +
+"		  |bg1_w_totsc          = \r\n" +
+"		  |bg1_totsc            = \r\n" + 
+"		  |bg1ee_wo_sod         = \r\n" +
+"		  |bg1ee_w_sod          = \r\n" + 
+"		  |bg1ee_sod            = \r\n" +
+"		  |bg2_soa_wo_tob       = \r\n" +
+"		  |bg2_soa_w_tob        = \r\n" +
+"		  |bg2ee_soa            = yes\r\n" +
+"		  |bg2_tob              = \r\n" +
+"		  |bg2ee_tob            = yes\r\n" +
+"		  |bg2ee_tbp2_got       = \r\n" +
+"		  |cut_content          = no\r\n" +
+"		  |mod_content          = no\r\n" +
+"		  |image                = \r\n" +
+"		  |caption1             = \r\n" +
+"		  |other_names          = \r\n" +
+"		  |general              = " + creInfoboxCommentZeroValue(cre, CreResource.CRE_GENERAL) + "\r\n" +
+"		  |gender               = " + creInfoboxCommentZeroValue(cre, CreResource.CRE_GENDER) + "\r\n" +
+"		  |race                 = " + creInfoboxCommentZeroValue(cre, CreResource.CRE_RACE) + "\r\n" +
+"		  |class                = " + creInfoboxCommentZeroValue(cre, CreResource.CRE_CLASS) + "\r\n" +
+"		  |kit                  = " + creInfoboxCommentZeroValue(cre, CreResource.CRE_KIT) + "\r\n" +
+"		  |movement_speed       = \r\n" + // cre.getAttribute(CreResource.CRE_SCRIPT_MOVEMENT) + "\r\n" +
+"		  |alignment            = {{alignment \r\n" +
+"		  |lawful_good          = " + (cre.getAttribute(CreResource.CRE_ALIGNMENT).toString().split(" - ")[0].equalsIgnoreCase("lawful_good") ? "yes" : "no" ) + "\r\n" +
+"		  |neutral_good         = " + (cre.getAttribute(CreResource.CRE_ALIGNMENT).toString().split(" - ")[0].equalsIgnoreCase("neutral_good") ? "yes" : "no" ) + "\r\n" +
+"		  |chaotic_good         = " + (cre.getAttribute(CreResource.CRE_ALIGNMENT).toString().split(" - ")[0].equalsIgnoreCase("chaotic_good") ? "yes" : "no" ) + "\r\n" +
+"		  |lawful_neutral       = " + (cre.getAttribute(CreResource.CRE_ALIGNMENT).toString().split(" - ")[0].equalsIgnoreCase("lawful_neutral") ? "yes" : "no" ) + "\r\n" +
+"		  |true_neutral         = " + (cre.getAttribute(CreResource.CRE_ALIGNMENT).toString().split(" - ")[0].equalsIgnoreCase("neutral") ? "yes" : "no" ) + "\r\n" +
+"		  |chaotic_neutral      = " + (cre.getAttribute(CreResource.CRE_ALIGNMENT).toString().split(" - ")[0].equalsIgnoreCase("chaotic_neutral") ? "yes" : "no" ) + "\r\n" +
+"		  |lawful_evil          = " + (cre.getAttribute(CreResource.CRE_ALIGNMENT).toString().split(" - ")[0].equalsIgnoreCase("lawful_evil") ? "yes" : "no" ) + "\r\n" +
+"		  |neutral_evil         = " + (cre.getAttribute(CreResource.CRE_ALIGNMENT).toString().split(" - ")[0].equalsIgnoreCase("neutral_evil") ? "yes" : "no" ) + "\r\n" +
+"		  |chaotic_evil         = " + (cre.getAttribute(CreResource.CRE_ALIGNMENT).toString().split(" - ")[0].equalsIgnoreCase("chaotic_evil") ? "yes" : "no" ) + "}}\r\n" +  
+"		  |allegiance           = " + creInfoboxCommentZeroValue(cre, CreResource.CRE_ALLEGIANCE) + "\r\n" +
+"		  |recruitment_bg1      = \r\n" +
+"		  |recruitment_bg2      = \r\n" +
+"		  |recruitment_bg1ee    = \r\n" +
+"		  |recruitment_bg2ee    = \r\n" +
+"		  |temporary            = \r\n" +
+"		  |missable             = \r\n" +
+"		  |required_chapter     = \r\n" +
+"		  |required_other       = \r\n" +
+"		  |area                 = \r\n" +
+"		  |organization         = \r\n" +
+"		  |relationships        = \r\n" +
+"		  |romance              = \r\n" +
+"		  |conflict             = \r\n" +
+"		  |pair                 = \r\n" +
+"		  |quests               = \r\n" +
+"		  |level                = " + cre.getAttribute(CreResource.CRE_LEVEL_FIRST_CLASS) +
+((Integer.parseInt(cre.getAttribute(CreResource.CRE_LEVEL_SECOND_CLASS).toString()) > 1) ? "/" + cre.getAttribute(CreResource.CRE_LEVEL_SECOND_CLASS) : "") +
+((Integer.parseInt(cre.getAttribute(CreResource.CRE_LEVEL_THIRD_CLASS).toString()) > 1) ? "/" + cre.getAttribute(CreResource.CRE_LEVEL_THIRD_CLASS) : "") +
+"\r\n" + 
+"		  |hit_points           = " + cre.getAttribute(CreResource.CRE_HP_CURRENT) + "/" + cre.getAttribute(CreResource.CRE_HP_MAX) + "\r\n" +
+
+"		  |xp_value             = " + cre.getAttribute(CreResource.CRE_XP_VALUE) + "\r\n" +
+"		  |strength             = " + cre.getAttribute(CreResource.CRE_STRENGTH) + 
+((Integer.parseInt(cre.getAttribute(CreResource.CRE_STRENGTH).toString()) > 17) ? "/" + cre.getAttribute(CreResource.CRE_STRENGTH_BONUS) : "" )+
+"\r\n" +
+"		  |dexterity            = " + cre.getAttribute(CreResource.CRE_DEXTERITY) + "\r\n" +
+"		  |constitution         = " + cre.getAttribute(CreResource.CRE_CONSTITUTION) + "\r\n" +
+"		  |intelligence         = " + cre.getAttribute(CreResource.CRE_INTELLIGENCE) + "\r\n" +
+"		  |wisdom               = " + cre.getAttribute(CreResource.CRE_WISDOM) + "\r\n" +
+"		  |charisma             = " + cre.getAttribute(CreResource.CRE_CHARISMA) + "\r\n" +
+"		  |total_scores         = " + stats + "\r\n" +
+"		  |luck                 = " + cre.getAttribute(CreResource.CRE_LUCK) + "\r\n" +
+"		  |weapon_proficiencies = \r\n" +
+"		  |no_of_attacks        = " + cre.getAttribute(CreResource.CRE_ATTACKS_PER_ROUND).toString().split(" ")[0] + "\r\n" +
+"		  |thac0                = " + cre.getAttribute(CreResource.CRE_THAC0)+ "\r\n" +
+"		  |racial_enemy         = " + creInfoboxCommentZeroValue(cre, CreResource.CRE_RACIAL_ENEMY).replace("No_race", "No") + "\r\n" +
+"		  |morale               = " + cre.getAttribute(CreResource.CRE_MORALE) + "\r\n" +
+"		  |breaking_point       = " + cre.getAttribute(CreResource.CRE_MORALE_BREAK) + "\r\n" +
+"		  |recovery_time        = " + cre.getAttribute(CreResource.CRE_MORALE_RECOVERY) + "\r\n" +
+"		  |natural_ac           = " + cre.getAttribute(CreResource.CRE_AC_NATURAL) + "\r\n" +
+"		  |effective_ac         = " + cre.getAttribute(CreResource.CRE_AC_EFFECTIVE) + "\r\n" +
+"		  |s_v_death            = " + cre.getAttribute(CreResource.CRE_SAVE_DEATH) + "\r\n" +
+"		  |s_v_wand             = " + cre.getAttribute(CreResource.CRE_SAVE_WAND) + "\r\n" +
+"		  |s_v_polymorph        = " + cre.getAttribute(CreResource.CRE_SAVE_POLYMORPH) + "\r\n" +
+"		  |s_v_breath           = " + cre.getAttribute(CreResource.CRE_SAVE_BREATH) + "\r\n" +
+"		  |s_v_spell            = " + cre.getAttribute(CreResource.CRE_SAVE_SPELL) + "\r\n" +
+"		  |fire                 = " + creInfoboxCommentZeroValue(cre,CreResource.CRE_RESISTANCE_FIRE) + "\r\n" +
+"		  |cold                 = " + creInfoboxCommentZeroValue(cre,CreResource.CRE_RESISTANCE_COLD)+ "\r\n" +
+"		  |electricity          = " + creInfoboxCommentZeroValue(cre,CreResource.CRE_RESISTANCE_ELECTRICITY) + "\r\n" +
+"		  |acid                 = " + creInfoboxCommentZeroValue(cre,CreResource.CRE_RESISTANCE_ACID) + "\r\n" +
+"		  |magic                = " + creInfoboxCommentZeroValue(cre,CreResource.CRE_RESISTANCE_MAGIC) + "\r\n" +
+"		  |magic_dmg_resistance = \r\n" + 
+"		  |magical_fire         = " + creInfoboxCommentZeroValue(cre,CreResource.CRE_RESISTANCE_MAGIC_FIRE) + "\r\n" +
+"		  |magical_cold         = " + creInfoboxCommentZeroValue(cre,CreResource.CRE_RESISTANCE_MAGIC_COLD) + "\r\n" +
+"		  |slashing             = " + creInfoboxCommentZeroValue(cre,CreResource.CRE_RESISTANCE_SLASHING) + "\r\n" +
+"		  |crushing             = " + creInfoboxCommentZeroValue(cre,CreResource.CRE_RESISTANCE_CRUSHING) + "\r\n" +
+"		  |piercing             = " + creInfoboxCommentZeroValue(cre,CreResource.CRE_RESISTANCE_PIERCING) + "\r\n" +
+"		  |missile              = " + creInfoboxCommentZeroValue(cre,CreResource.CRE_RESISTANCE_MISSILE) + "\r\n" +
+"		  |open_locks           = " + creInfoboxCommentZeroValue(cre,CreResource.CRE_OPEN_LOCKS) + "\r\n" +
+"		  |pick_pockets         = " + creInfoboxCommentZeroValue(cre,CreResource.CRE_PICK_POCKETS) + "\r\n" +
+"		  |stealth              = " + "\r\n" +
+"		  |move_silently        = " + creInfoboxCommentZeroValue(cre,CreResource.CRE_MOVE_SILENTLY) + "\r\n" +
+"		  |hide_in_shadows      = " + creInfoboxCommentZeroValue(cre,CreResource.CRE_HIDE_IN_SHADOWS) + "\r\n" +
+"		  |find_traps           = " + creInfoboxCommentZeroValue(cre,CreResource.CRE_FIND_TRAPS) + "\r\n" +
+"		  |set_traps            = " + creInfoboxCommentZeroValue(cre,CreResource.CRE_SET_TRAPS) + "\r\n" +
+"		  |detect_illusion      = " + creInfoboxCommentZeroValue(cre,CreResource.CRE_DETECT_ILLUSION) + "\r\n" +
+"		  |spells               = \r\n" +
+"		  |special_abilities    = \r\n" + // cre.getAttribute(CreResource.CRE_ABILITIES) + "\r\n" +
+"		  |extra_abilities      = \r\n" +
+"		  |effects              = \r\n" +
+"		  |special              = \r\n" +
+"		  |script_name          = " + cre.getAttribute(CreResource.CRE_SCRIPT_NAME) + "\r\n" +
+"		  |override_script      = " + cre.getAttribute(CreResource.CRE_SCRIPT_OVERRIDE) + "\r\n" +
+"		  |class_script         = " + cre.getAttribute(CreResource.CRE_SCRIPT_CLASS) + "\r\n" +
+"		  |race_script          = " + cre.getAttribute(CreResource.CRE_SCRIPT_RACE) + "\r\n" +
+"		  |general_script       = " + cre.getAttribute(CreResource.CRE_SCRIPT_GENERAL) + "\r\n" +
+"		  |default_script       = " + cre.getAttribute(CreResource.CRE_SCRIPT_DEFAULT) + "\r\n" +
+"		  |gold                 = " + creInfoboxCommentZeroValue(cre,CreResource.CRE_GOLD) + "\r\n" +
+"		  |items                = "  + "\r\n" + 
+"		  |exclusive_equipment  = \r\n" +
+"		  |reputation_kill      = " + creInfoboxCommentZeroValue(cre,CreResource.CRE_REPUTATION_MOD_KILLED) + "\r\n" +
+"		  |reputation_join      = " + creInfoboxCommentZeroValue(cre,CreResource.CRE_REPUTATION_MOD_JOIN) + "\r\n" +
+"		  |reputation_leave     = " + creInfoboxCommentZeroValue(cre,CreResource.CRE_REPUTATION_MOD_LEAVE) + "\r\n" +
+"		  |voice_actor          = \r\n" +
+"		  |creature_code        = " + cre.getName().replace(".CRE", ".cre")  + "\r\n" + 
+"		  |store_code           = \r\n" +
+"}}";
+	  
+	  InfinityTextArea ta = new InfinityTextArea(infobox, true);
+	  ta.setCaretPosition(0);
+	  ta.setHighlightCurrentLine(false);
+	  ta.setEditable(false);
+	  ta.setLineWrap(true);
+	  ta.setWrapStyleWord(true);
+	  InfinityScrollPane scroll = new InfinityScrollPane(ta, true);
+	  scroll.setLineNumbersEnabled(false);
+	  ta.setMargin(new Insets(3, 3, 3, 3));
+	  JPanel panel = new JPanel(new BorderLayout());
+	  panel.add(new JLabel("BG-Wiki CreatureInfobox"), BorderLayout.NORTH);
+	  panel.add(scroll, BorderLayout.CENTER);
+	  panel.setPreferredSize(new Dimension(5, 5));
+	  return panel;
+  }
+  // END: HENKO edit 2019-07-04
   private JPanel makeItemSpellsPanelIWD2(CreResource cre)
   {
     JPanel panel = new JPanel(new GridLayout(1, 2, 6, 0));
